@@ -3,6 +3,8 @@
 #include <chrono>
 #include <string>
 #include <vector>
+#include <algorithm>
+#include <cmath>
 
 namespace mybench {
 
@@ -30,29 +32,45 @@ void bench(const std::string& nom, Fn fonction, int samples = 50, int iterations
 
 		const auto fin = std::chrono::steady_clock::now();
 		const auto duree=
-			std::chrono::duration_cast<std::chrono::nanoseconds>(fin -debut).count();
+			std::chrono::duration_cast<std::chrono::nanoseconds>(fin - debut).count();
 		temps.push_back(static_cast<double>(duree) / iterations);
 
 	}
 
-	double min = temps[0];
-	double max = temps[0];
+	std::sort(temps.begin(), temps.end());
+	const size_t n = temps.size();
+
+	const double min = temps.front();
+	const double max = temps.back();
+
 	double somme = 0.0;
 	for(double t : temps){
-		if(t < min)
-			min = t;
-		if(t>max)
-			max = t;
 		somme+=t;
 	}
 
-	const double moyenne = somme / temps.size();
+	const double moyenne = somme / n;
 
-	std::cout << nom << " : "
-		<< "min : " << min << " ns, "
-		<< "moy : " << moyenne << " ns, "
-		<< "max : " << max << " ns, "
-		<< " (" << samples << " echantillons X " << iterations << " iterations)\n";
+	double mediane;
+	if(n%2==0){
+		mediane = (temps[n/2 - 1] + temps[n/2]) / 2.0;
+	}else{
+		mediane = temps[n/2];
+	}
+
+	double somme_carres = 0.0;
+	for(double t : temps){
+		const double ecart = t - moyenne;
+		somme_carres += ecart * ecart;
+	}
+
+	const double ecart_type = std::sqrt(somme_carres / n);
+
+	std::cout << nom << " :\n"
+		<< "min : " << min << " ns\n"
+		<< " median " << mediane << " ns\n"
+		<< "moy : " << moyenne << " ns\n "
+		<< "max : " << max << " ns\n "
+		<< " stddev " << ecart_type << " ns\n";
 }
 
 }
