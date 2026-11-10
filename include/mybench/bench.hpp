@@ -16,12 +16,30 @@ inline void DoNotOptimize(const T& valeur){
 }
 
 template <typename Fn>
-void bench(const std::string& nom, Fn fonction, int samples = 50, int iterations = 1000, int warmup = 100){
+void bench(const std::string& nom, Fn fonction, int samples = 50, double cible_ns = 1'000'000.0, int warmup = 100){
 
 	for(int i = 0; i < warmup; i++){
 		fonction();
 	}
-		
+
+	int iterations = 1;
+	while(true){
+		const auto debut = std::chrono::steady_clock::now();
+		for(int i = 0; i < iterations; ++i){
+			fonction();
+		}
+
+
+		const auto fin = std::chrono::steady_clock::now();
+		const double duree = std::chrono::duration_cast<std::chrono::nanoseconds>(fin - debut).count();
+
+		if(duree >= cible_ns || iterations > 1'000'000){
+			break;
+		}
+		iterations*=2;
+	}
+
+
 	std::vector<double> temps;
 	temps.reserve(samples);
 	for(int s = 0; s < samples; ++s){
@@ -33,7 +51,7 @@ void bench(const std::string& nom, Fn fonction, int samples = 50, int iterations
 		const auto fin = std::chrono::steady_clock::now();
 		const auto duree=
 			std::chrono::duration_cast<std::chrono::nanoseconds>(fin - debut).count();
-		temps.push_back(static_cast<double>(duree) / iterations);
+		temps.push_back(duree / iterations);
 
 	}
 
@@ -67,10 +85,12 @@ void bench(const std::string& nom, Fn fonction, int samples = 50, int iterations
 
 	std::cout << nom << " :\n"
 		<< "min : " << min << " ns\n"
-		<< " median " << mediane << " ns\n"
+		<< "median " << mediane << " ns\n"
 		<< "moy : " << moyenne << " ns\n "
-		<< "max : " << max << " ns\n "
-		<< " stddev " << ecart_type << " ns\n";
+		<< "max : " << max << " ns\n"
+		<< "stddev " << ecart_type << " ns\n"
+		<< "   (" << samples << " samples x " << iterations << " iterations auto)\n";
+
 }
 
 }
