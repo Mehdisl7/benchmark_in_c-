@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cmath>
 #include <iomanip>
+#include <fstream>
 
 namespace mybench {
 
@@ -124,6 +125,31 @@ inline void print_table(const std::vector<Result>& results){
                   << std::setw(18) << r.ops_par_sec
                   << "\n";
 	}
+}
+
+
+inline void csv(const std::vector<Result>& results, const std::string& chemin){
+	std::ofstream fichier(chemin);
+	if(!fichier){
+		std::cerr << "erreur, impossible d'ouvrir le fichier " << chemin << "\n";
+		return;
+	}
+
+	fichier << "name, min_ns, median_ns, max_ns, stddev_ns, ops_par_s, samples, iterations\n";
+	
+	for(const Result& r: results){
+		fichier << r.nom << ','
+		<< r.min << ','
+               	<< r.mediane << ','
+               	<< r.mean << ','
+               	<< r.max << ','
+               	<< r.stddev << ','
+               	<< r.ops_par_sec << ','
+               	<< r.samples << ','
+               	<< r.iterations << '\n';
+    	}
+
+   	 std::cout << "Resultats ecrits dans " << chemin << "\n";
 }
 }
 

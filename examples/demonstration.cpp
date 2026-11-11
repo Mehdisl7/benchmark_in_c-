@@ -21,5 +21,6 @@ int main(int argc, char**) {
     }));
 
     mybench::print_table(results);
+    mybench::csv(results, "results.csv");
     return 0;
 }

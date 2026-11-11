@@ -1,0 +1,3 @@
+name, min_ns, median_ns, max_ns, stddev_ns, ops_par_s, samples, iterations
+SANS protection,0,0,0,0,0,inf,50,1048576
+AVEC protection,88676,89957.5,95712.9,178094,14223.1,11116.4,50,16

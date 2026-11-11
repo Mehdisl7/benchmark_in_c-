@@ -17,3 +17,8 @@ target_compile_options(demo PRIVATE -O2 -Wall -Wextra)
 add_executable(demonstration examples/demonstration.cpp)
 target_link_libraries(demonstration PRIVATE mybench)
 target_compile_options(demonstration PRIVATE -O2 -Wall -Wextra)
+
+# Programme 3 : benchmark de commande externe
+add_executable(benchcmd examples/benchcmd.cpp)
+target_link_libraries(benchcmd PRIVATE mybench)
+target_compile_options(benchcmd PRIVATE -O2 -Wall -Wextra)
