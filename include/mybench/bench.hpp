@@ -5,6 +5,7 @@
 #include <vector>
 #include <algorithm>
 #include <cmath>
+#include <iomanip>
 
 namespace mybench {
 
@@ -15,17 +16,26 @@ inline void DoNotOptimize(const T& valeur){
 	asm volatile("" : : "r,m"(valeur) : "memory");
 }
 
+struct Result {
+
+	std::string nom;
+	double min, mediane, mean, max, stddev, ops_par_sec;
+	int samples;
+	long iterations;
+};
+
+
 template <typename Fn>
-void bench(const std::string& nom, Fn fonction, int samples = 50, double cible_ns = 1'000'000.0, int warmup = 100){
+Result bench(const std::string& nom, Fn fonction, int samples = 50, double cible_ns = 1'000'000.0, int warmup = 100){
 
 	for(int i = 0; i < warmup; i++){
 		fonction();
 	}
 
-	int iterations = 1;
+	long iterations = 1;
 	while(true){
 		const auto debut = std::chrono::steady_clock::now();
-		for(int i = 0; i < iterations; ++i){
+		for(long i = 0; i < iterations; ++i){
 			fonction();
 		}
 
@@ -44,7 +54,7 @@ void bench(const std::string& nom, Fn fonction, int samples = 50, double cible_n
 	temps.reserve(samples);
 	for(int s = 0; s < samples; ++s){
 		const auto debut = std::chrono::steady_clock::now();
-		for(int i = 0; i < iterations; i++){
+		for(long i = 0; i < iterations; i++){
 			fonction(); //c'est ici qu'on va executer le code afin de le mesurer.	    
 		}
 
@@ -52,15 +62,10 @@ void bench(const std::string& nom, Fn fonction, int samples = 50, double cible_n
 		const auto duree=
 			std::chrono::duration_cast<std::chrono::nanoseconds>(fin - debut).count();
 		temps.push_back(duree / iterations);
-
 	}
 
 	std::sort(temps.begin(), temps.end());
 	const size_t n = temps.size();
-
-	const double min = temps.front();
-	const double max = temps.back();
-
 	double somme = 0.0;
 	for(double t : temps){
 		somme+=t;
@@ -83,16 +88,43 @@ void bench(const std::string& nom, Fn fonction, int samples = 50, double cible_n
 
 	const double ecart_type = std::sqrt(somme_carres / n);
 
-	std::cout << nom << " :\n"
-		<< "min : " << min << " ns\n"
-		<< "median " << mediane << " ns\n"
-		<< "moy : " << moyenne << " ns\n "
-		<< "max : " << max << " ns\n"
-		<< "stddev " << ecart_type << " ns\n"
-		<< "   (" << samples << " samples x " << iterations << " iterations auto)\n";
-
+	Result r;
+	r.nom = nom;
+	r.min = temps.front();
+	r.mediane = mediane;
+	r.mean = moyenne;
+	r.max = temps.back();
+	r.stddev = ecart_type;
+	r.ops_par_sec = 1'000'000'000.0 / mediane;
+	r.samples = samples;
+	r.iterations = iterations;
+	return r;
 }
 
+inline void print_table(const std::vector<Result>& results){
+	std::cout << std::left << std::setw(24) << "name"
+		<< std::right
+		<< std::setw(12) << "min(ns)"
+		<< std::setw(12) << "mediane(ns)"
+		<< std::setw(12) << "mean(ns)"
+		<< std::setw(12) << "max(ns)"
+		<< std::setw(12) << "stddev"
+		<< std::setw(18) << "ops/s"
+		<< "\n";
+	std::cout << std::string(24 + 12 * 5 + 18, '-') << "\n";
+	std::cout << std::fixed << std::setprecision(2);
+	for(const Result& r : results){
+		std::cout << std::left << std::setw(24) << r.nom
+                  << std::right
+                  << std::setw(12) << r.min
+                  << std::setw(12) << r.mediane
+                  << std::setw(12) << r.mean
+                  << std::setw(12) << r.max
+                  << std::setw(12) << r.stddev
+                  << std::setw(18) << r.ops_par_sec
+                  << "\n";
+	}
+}
 }
 
 
