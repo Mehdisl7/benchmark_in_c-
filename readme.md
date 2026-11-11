@@ -149,16 +149,6 @@ Done:
 - [x] Aligned table + CSV export
 - [x] Command / `.c` source benchmarking with clean output
 
-Planned:
-
-- [ ] Percentiles (p90, p99) for tail-latency analysis
-- [ ] JSON export
-- [ ] Factor the shared statistics into a common header
-- [ ] Unit tests (GoogleTest / Catch2) and CI (GitHub Actions)
-
-A separate project will build a **system benchmark in C** (multi-threaded CPU, RAM,
-disk, and temperature sensors).
-
 ## License
 
 MIT — see license
